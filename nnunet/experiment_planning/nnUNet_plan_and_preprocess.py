@@ -22,7 +22,8 @@ import shutil
 from nnunet.utilities.task_name_id_conversion import convert_id_to_task_name
 from nnunet.preprocessing.sanity_checks import verify_dataset_integrity
 from nnunet.training.model_restore import recursive_find_python_class
-
+from rich.console import Console
+console = Console()
 
 def main():
     import argparse
@@ -70,14 +71,12 @@ def main():
     tasks = []
     for i in task_ids:
         i = int(i)
-
         task_name = convert_id_to_task_name(i)
 
         if args.verify_dataset_integrity:
             verify_dataset_integrity(join(nnUNet_raw_data, task_name))
 
         crop(task_name, False, tf)
-
         tasks.append(task_name)
 
     search_in = join(nnunet.__path__[0], "experiment_planning")
@@ -99,7 +98,7 @@ def main():
         planner_2d = None
 
     for t in tasks:
-        print("\n\n\n", t)
+        console.log("\n\n\n", t)
         cropped_out_dir = os.path.join(nnUNet_cropped_data, t)
         preprocessing_output_dir_this_task = os.path.join(preprocessing_output_dir, t)
         #splitted_4d_output_dir_task = os.path.join(nnUNet_raw_data, t)
@@ -119,7 +118,7 @@ def main():
 
         threads = (tl, tf)
 
-        print("number of threads: ", threads, "\n")
+        console.log("number of threads: ", threads, "\n")
 
         if planner_3d is not None:
             exp_planner = planner_3d(cropped_out_dir, preprocessing_output_dir_this_task)

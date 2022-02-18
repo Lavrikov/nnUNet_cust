@@ -21,7 +21,8 @@ from scipy.ndimage.interpolation import map_coordinates
 import numpy as np
 from batchgenerators.utilities.file_and_folder_operations import *
 from multiprocessing.pool import Pool
-
+from rich.console import Console
+console = Console()
 
 def get_do_separate_z(spacing, anisotropy_threshold=RESAMPLING_SEPARATE_Z_ANISO_THRESHOLD):
     do_separate_z = (np.max(spacing) / np.min(spacing)) > anisotropy_threshold
@@ -88,7 +89,7 @@ def resample_patient(data, seg, original_spacing, target_spacing, order_data=3, 
             # every axis has the spacing
             axis = (0, )
         elif len(axis) == 2:
-            print("WARNING: axis has len 2, axis: %s, spacing: %s, target_spacing: %s" % (str(axis), original_spacing, target_spacing))
+            console.log("WARNING: axis has len 2, axis: %s, spacing: %s, target_spacing: %s" % (str(axis), original_spacing, target_spacing))
             do_separate_z = False
         else:
             pass
@@ -132,7 +133,7 @@ def resample_data_or_seg(data, new_shape, is_seg, axis=None, order=3, do_separat
     new_shape = np.array(new_shape)
     if np.any(shape != new_shape):
         if do_separate_z:
-            print("separate z, order in z is", order_z, "order inplane is", order)
+            console.log("separate z, order in z is", order_z, "order inplane is", order)
             assert len(axis) == 1, "only one anisotropic axis supported"
             axis = axis[0]
             if axis == 0:
@@ -187,14 +188,14 @@ def resample_data_or_seg(data, new_shape, is_seg, axis=None, order=3, do_separat
                     reshaped_final_data.append(reshaped_data[None])
             reshaped_final_data = np.vstack(reshaped_final_data)
         else:
-            print("no separate z, order", order)
+            console.log("no separate z, order", order)
             reshaped = []
             for c in range(data.shape[0]):
                 reshaped.append(resize_fn(data[c], new_shape, order, cval=cval, **kwargs)[None])
             reshaped_final_data = np.vstack(reshaped)
         return reshaped_final_data.astype(dtype_data)
     else:
-        print("no resampling necessary")
+        console.log("no resampling necessary")
         return data
 
 
@@ -253,7 +254,7 @@ class GenericPreprocessor(object):
             'spacing': target_spacing,
             'data.shape (data is resampled)': data.shape
         }
-        print("before:", before, "\nafter: ", after, "\n")
+        console.log("before:", before, "\nafter: ", after, "\n")
 
         if seg is not None:  # hippocampus 243 has one voxel with -2 as label. wtf?
             seg[seg < -1] = 0
@@ -341,10 +342,10 @@ class GenericPreprocessor(object):
 
             selected = all_locs[rndst.choice(len(all_locs), target_num_samples, replace=False)]
             class_locs[c] = selected
-            print(c, target_num_samples)
+            console.log(c, target_num_samples)
         properties['class_locations'] = class_locs
 
-        print("saving: ", os.path.join(output_folder_stage, "%s.npz" % case_identifier))
+        console.log("saving: ", os.path.join(output_folder_stage, "%s.npz" % case_identifier))
         np.savez_compressed(os.path.join(output_folder_stage, "%s.npz" % case_identifier),
                             data=all_data.astype(np.float32))
         with open(os.path.join(output_folder_stage, "%s.pkl" % case_identifier), 'wb') as f:
@@ -361,9 +362,9 @@ class GenericPreprocessor(object):
         :param force_separate_z: None
         :return:
         """
-        print("Initializing to run preprocessing")
-        print("npz folder:", input_folder_with_cropped_npz)
-        print("output_folder:", output_folder)
+        console.log("Initializing to run preprocessing")
+        console.log("npz folder:", input_folder_with_cropped_npz)
+        console.log("output_folder:", output_folder)
         list_of_cropped_npz_files = subfiles(input_folder_with_cropped_npz, True, None, ".npz", True)
         maybe_mkdir_p(output_folder)
         num_stages = len(target_spacings)
@@ -423,7 +424,7 @@ class Preprocessor3DDifferentResampling(GenericPreprocessor):
             'spacing': target_spacing,
             'data.shape (data is resampled)': data.shape
         }
-        print("before:", before, "\nafter: ", after, "\n")
+        console.log("before:", before, "\nafter: ", after, "\n")
 
         if seg is not None:  # hippocampus 243 has one voxel with -2 as label. wtf?
             seg[seg < -1] = 0
@@ -491,7 +492,7 @@ class Preprocessor3DBetterResampling(GenericPreprocessor):
         :return:
         """
         if force_separate_z is not False:
-            print("WARNING: Preprocessor3DBetterResampling always uses force_separate_z=False. "
+            console.log("WARNING: Preprocessor3DBetterResampling always uses force_separate_z=False. "
                   "You specified %s. Your choice is overwritten" % str(force_separate_z))
             force_separate_z = False
 
@@ -517,7 +518,7 @@ class Preprocessor3DBetterResampling(GenericPreprocessor):
             'spacing': target_spacing,
             'data.shape (data is resampled)': data.shape
         }
-        print("before:", before, "\nafter: ", after, "\n")
+        console.log("before:", before, "\nafter: ", after, "\n")
 
         if seg is not None:  # hippocampus 243 has one voxel with -2 as label. wtf?
             seg[seg < -1] = 0
@@ -574,9 +575,9 @@ class PreprocessorFor2D(GenericPreprocessor):
 
     def run(self, target_spacings, input_folder_with_cropped_npz, output_folder, data_identifier,
             num_threads=default_num_threads, force_separate_z=None):
-        print("Initializing to run preprocessing")
-        print("npz folder:", input_folder_with_cropped_npz)
-        print("output_folder:", output_folder)
+        console.log("Initializing to run preprocessing")
+        console.log("npz folder:", input_folder_with_cropped_npz)
+        console.log("output_folder:", output_folder)
         list_of_cropped_npz_files = subfiles(input_folder_with_cropped_npz, True, None, ".npz", True)
         assert len(list_of_cropped_npz_files) != 0, "set list of files first"
         maybe_mkdir_p(output_folder)
@@ -615,7 +616,7 @@ class PreprocessorFor2D(GenericPreprocessor):
             'spacing': target_spacing,
             'data.shape (data is resampled)': data.shape
         }
-        print("before:", before, "\nafter: ", after, "\n")
+        console.log("before:", before, "\nafter: ", after, "\n")
 
         if seg is not None:  # hippocampus 243 has one voxel with -2 as label. wtf?
             seg[seg < -1] = 0
@@ -630,7 +631,7 @@ class PreprocessorFor2D(GenericPreprocessor):
         assert len(self.use_nonzero_mask) == len(data), "self.use_nonzero_mask must have as many entries as data" \
                                                         " has modalities"
 
-        print("normalization...")
+        console.log("normalization...")
 
         for c in range(len(data)):
             scheme = self.normalization_scheme_per_modality[c]
@@ -664,7 +665,7 @@ class PreprocessorFor2D(GenericPreprocessor):
                     mask = np.ones(seg.shape[1:], dtype=bool)
                 data[c][mask] = (data[c][mask] - data[c][mask].mean()) / (data[c][mask].std() + 1e-8)
                 data[c][mask == 0] = 0
-        print("normalization done")
+        console.log("normalization done")
         return data, seg, properties
 
 
@@ -684,7 +685,7 @@ class PreprocessorFor2D_noNormalization(GenericPreprocessor):
             'spacing': target_spacing,
             'data.shape (data is resampled)': data.shape
         }
-        print("before:", before, "\nafter: ", after, "\n")
+        console.log("before:", before, "\nafter: ", after, "\n")
 
         if seg is not None:  # hippocampus 243 has one voxel with -2 as label. wtf?
             seg[seg < -1] = 0
