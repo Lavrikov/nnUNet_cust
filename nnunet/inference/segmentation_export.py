@@ -96,9 +96,14 @@ def save_segmentation_nifti_from_softmax(segmentation_softmax: Union[str, np.nda
                 lowres_axis = None
 
         if verbose: print("separate z:", do_separate_z, "lowres axis", lowres_axis)
+        # todo important: change
+        print("++This is save_segmentation_nifti_from_softmax")
         seg_old_spacing = resample_data_or_seg(segmentation_softmax, shape_original_after_cropping, is_seg=False,
                                                axis=lowres_axis, order=order, do_separate_z=do_separate_z, cval=0,
                                                order_z=interpolation_order_z)
+        # seg_old_spacing = resample_data_or_seg(segmentation_softmax, shape_original_after_cropping, is_seg=True,
+        #                                        axis=lowres_axis, order=order, do_separate_z=do_separate_z, cval=0,
+        #                                        order_z=interpolation_order_z)
         # seg_old_spacing = resize_softmax_output(segmentation_softmax, shape_original_after_cropping, order=order)
     else:
         if verbose: print("no resampling necessary")
@@ -112,7 +117,11 @@ def save_segmentation_nifti_from_softmax(segmentation_softmax: Union[str, np.nda
         save_pickle(properties_dict, resampled_npz_fname[:-4] + ".pkl")
 
     if region_class_order is None:
+        # todo important: change
+        # print(seg_old_spacing.shape)
         seg_old_spacing = seg_old_spacing.argmax(0)
+        # seg_old_spacing = seg_old_spacing
+        # print(seg_old_spacing.shape)
     else:
         seg_old_spacing_final = np.zeros(seg_old_spacing.shape[1:])
         for i, c in enumerate(region_class_order):

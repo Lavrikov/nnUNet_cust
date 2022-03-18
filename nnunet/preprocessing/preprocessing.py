@@ -126,8 +126,23 @@ def resample_data_or_seg(data, new_shape, is_seg, axis=None, order=3, do_separat
     else:
         resize_fn = resize
         kwargs = {'mode': 'edge', 'anti_aliasing': False}
+
     dtype_data = data.dtype
     data = data.astype(float)
+
+    # todo important: change
+    # dtype_data = np.float16
+    # data = data.astype(np.float16)
+
+    # todo important: change
+    # print(f"is_seg: {is_seg}")
+    # if is_seg:
+    #     dtype_data = np.uint8  # can not work because is data is still softmax multilabel map -> will cast everything to 0 or 1
+    #     data = data.astype(dtype_data)
+    # else:
+    #     dtype_data = data.dtype
+    #     data = data.astype(float)
+
     shape = np.array(data[0].shape)
     new_shape = np.array(new_shape)
     if np.any(shape != new_shape):
@@ -187,7 +202,25 @@ def resample_data_or_seg(data, new_shape, is_seg, axis=None, order=3, do_separat
                     reshaped_final_data.append(reshaped_data[None])
             reshaped_final_data = np.vstack(reshaped_final_data)
         else:
+            # todo important: change
+            # order = 0  # This alone does not solve Problem
+            print(f"++order: {order}")
+
             print("no separate z, order", order)
+            
+            # print(f"shape before: {data.shape}")
+            print(f"dtype: {data.dtype}")
+
+            # if is_seg:
+            #     print("++using argmax")
+            #     data = np.argmax(data, axis=0)
+            #     print(data.shape)
+            #     print(np.unique(data))
+            #     reshaped_final_data = resize_fn(data, new_shape, order, cval=cval, **kwargs)  # [None]
+            #     print(f"shape after resize: {reshaped_final_data.shape}")
+            #     print(np.unique(reshaped_final_data))
+            # else:
+
             reshaped = []
             for c in range(data.shape[0]):
                 reshaped.append(resize_fn(data[c], new_shape, order, cval=cval, **kwargs)[None])

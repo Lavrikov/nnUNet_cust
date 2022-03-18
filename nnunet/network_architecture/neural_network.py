@@ -23,6 +23,7 @@ from scipy.ndimage.filters import gaussian_filter
 from typing import Union, Tuple, List
 
 from torch.cuda.amp import autocast
+import torch.nn.functional as F
 
 
 class NeuralNetwork(nn.Module):
@@ -292,6 +293,14 @@ class SegmentationNetwork(NeuralNetwork):
                                           patch_size: tuple, regions_class_order: tuple, use_gaussian: bool,
                                           pad_border_mode: str, pad_kwargs: dict, all_in_gpu: bool,
                                           verbose: bool) -> Tuple[np.ndarray, np.ndarray]:
+        
+        # todo important: change
+        # all_in_gpu = True
+
+        # todo important: change
+        # step_size = 0.5
+        # use_gaussian = False  # resulting in error
+
         # better safe than sorry
         assert len(x.shape) == 4, "x must be (c, x, y, z)"
         assert self.get_device() != "cpu"
@@ -365,12 +374,24 @@ class SegmentationNetwork(NeuralNetwork):
         else:
             if use_gaussian and num_tiles > 1:
                 add_for_nb_of_preds = self._gaussian_3d
+                # add_for_nb_of_preds *= 1.0/add_for_nb_of_preds.max()
+                # add_for_nb_of_preds *= 100
+                # add_for_nb_of_preds = add_for_nb_of_preds.astype(np.uint8)
             else:
                 add_for_nb_of_preds = np.ones(data.shape[1:], dtype=np.float32)
+                # add_for_nb_of_preds = np.ones(data.shape[1:], dtype=np.float16)
+                # add_for_nb_of_preds = np.ones(data.shape[1:], dtype=np.uint8)
             aggregated_results = np.zeros([self.num_classes] + list(data.shape[1:]), dtype=np.float32)
             aggregated_nb_of_predictions = np.zeros([self.num_classes] + list(data.shape[1:]), dtype=np.float32)
+            # aggregated_results = np.zeros([self.num_classes] + list(data.shape[1:]), dtype=np.float16)
+            # aggregated_nb_of_predictions = np.zeros([self.num_classes] + list(data.shape[1:]), dtype=np.float16)
+            # aggregated_results = np.zeros([self.num_classes] + list(data.shape[1:]), dtype=np.uint8)
+            # aggregated_nb_of_predictions = np.zeros([self.num_classes] + list(data.shape[1:]), dtype=np.uint8)
+
+        print("Starting loop")
 
         for x in steps[0]:
+            print(x)
             lb_x = x
             ub_x = x + patch_size[0]
             for y in steps[1]:
@@ -385,12 +406,31 @@ class SegmentationNetwork(NeuralNetwork):
                         gaussian_importance_map)[0]
 
                     if all_in_gpu:
-                        predicted_patch = predicted_patch.half()
+                        predicted_patch = predicted_patch.half() 
                     else:
+                        # predicted_patch = predicted_patch.cpu().numpy()  # float32
+                        # print("-----")
+                        # print(predicted_patch.shape)
+                        # predicted_patch = F.softmax(predicted_patch, dim=0)
+                        # predicted_patch = torch.argmax(predicted_patch, dim=0)[None,...]
+                        # print(predicted_patch.shape)
+
+                        # predicted_patch = predicted_patch.half().cpu().numpy()   # float16  # slower but ok
+
+                        # predicted_patch = predicted_patch * 100
+                        # predicted_patch = predicted_patch.type(torch.uint8)
+
+                        # Original
                         predicted_patch = predicted_patch.cpu().numpy()
+
+                        # print(predicted_patch.dtype)
+                        # print(predicted_patch.shape)  # [nr_classes, x, y, z]
+                        # predicted_patch = predicted_patch.astype(np.float16)  # super slow
 
                     aggregated_results[:, lb_x:ub_x, lb_y:ub_y, lb_z:ub_z] += predicted_patch
                     aggregated_nb_of_predictions[:, lb_x:ub_x, lb_y:ub_y, lb_z:ub_z] += add_for_nb_of_preds
+
+        print("Finished loop")
 
         # we reverse the padding here (remeber that we padded the input to be at least as large as the patch size
         slicer = tuple(
