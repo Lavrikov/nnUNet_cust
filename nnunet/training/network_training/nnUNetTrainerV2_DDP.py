@@ -29,7 +29,7 @@ from nnunet.evaluation.evaluator import aggregate_scores
 from nnunet.inference.segmentation_export import save_segmentation_nifti_from_softmax
 from nnunet.network_architecture.neural_network import SegmentationNetwork
 from nnunet.postprocessing.connected_components import determine_postprocessing
-from nnunet.training.data_augmentation.data_augmentation_moreDA import get_moreDA_augmentation
+#from nnunet.training.data_augmentation.data_augmentation_moreDA import get_moreDA_augmentation
 from nnunet.training.dataloading.dataset_loading import unpack_dataset
 from nnunet.training.loss_functions.crossentropy import RobustCrossEntropyLoss
 from nnunet.training.loss_functions.dice_loss import get_tp_fp_fn_tn
@@ -178,14 +178,14 @@ class nnUNetTrainerV2_DDP(nnUNetTrainerV2):
                 seeds_val = np.random.random_integers(0, 99999, max(self.data_aug_params.get('num_threads') // 2, 1))
                 print("seeds train", seeds_train)
                 print("seeds_val", seeds_val)
-                self.tr_gen, self.val_gen = get_moreDA_augmentation(self.dl_tr, self.dl_val,
-                                                                    self.data_aug_params[
-                                                                        'patch_size_for_spatialtransform'],
-                                                                    self.data_aug_params,
-                                                                    deep_supervision_scales=self.deep_supervision_scales,
-                                                                    seeds_train=seeds_train,
-                                                                    seeds_val=seeds_val,
-                                                                    pin_memory=self.pin_memory)
+                # self.tr_gen, self.val_gen = get_moreDA_augmentation(self.dl_tr, self.dl_val,
+                #                                                     self.data_aug_params[
+                #                                                         'patch_size_for_spatialtransform'],
+                #                                                     self.data_aug_params,
+                #                                                     deep_supervision_scales=self.deep_supervision_scales,
+                #                                                     seeds_train=seeds_train,
+                #                                                     seeds_val=seeds_val,
+                #                                                     pin_memory=self.pin_memory)
                 self.print_to_log_file("TRAINING KEYS:\n %s" % (str(self.dataset_tr.keys())),
                                        also_print_to_console=False)
                 self.print_to_log_file("VALIDATION KEYS:\n %s" % (str(self.dataset_val.keys())),
