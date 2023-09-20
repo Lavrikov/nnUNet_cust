@@ -115,10 +115,10 @@ def get_moreDA_augmentation(dataloader_train, dataloader_val, patch_size, params
 
     tr_transforms.append(RemoveLabelTransform(-1, 0))
 
-    if params.get("move_last_seg_chanel_to_data") is not None and params.get("move_last_seg_chanel_to_data"):
-        #tr_transforms.append(MoveSegAsOneHotToData(1, params.get("all_segmentation_labels"), 'seg', 'data'))
-        if params.get("cascade_do_cascade_augmentations") is not None and params.get(
-                "cascade_do_cascade_augmentations"):
+    # if params.get("move_last_seg_chanel_to_data") is not None and params.get("move_last_seg_chanel_to_data"):
+    #     #tr_transforms.append(MoveSegAsOneHotToData(1, params.get("all_segmentation_labels"), 'seg', 'data'))
+    #     if params.get("cascade_do_cascade_augmentations") is not None and params.get(
+    #             "cascade_do_cascade_augmentations"):
             # if params.get("cascade_random_binary_transform_p") > 0:
             #     tr_transforms.append(ApplyRandomBinaryOperatorTransform(
             #         channel_idx=list(range(-len(params.get("all_segmentation_labels")), 0)),
