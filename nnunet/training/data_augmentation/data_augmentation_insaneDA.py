@@ -30,9 +30,9 @@ from nnunet.training.data_augmentation.custom_transforms import Convert3DTo2DTra
     MaskTransform, ConvertSegmentationToRegionsTransform
 from nnunet.training.data_augmentation.default_data_augmentation import default_3D_augmentation_params
 from nnunet.training.data_augmentation.downsampling import DownsampleSegForDSTransform3, DownsampleSegForDSTransform2
-from nnunet.training.data_augmentation.pyramid_augmentations import MoveSegAsOneHotToData, \
-    ApplyRandomBinaryOperatorTransform, \
-    RemoveRandomConnectedComponentFromOneHotEncodingTransform
+# from nnunet.training.data_augmentation.pyramid_augmentations import MoveSegAsOneHotToData, \
+#     ApplyRandomBinaryOperatorTransform, \
+#     RemoveRandomConnectedComponentFromOneHotEncodingTransform
 
 try:
     from batchgenerators.dataloading.nondet_multi_threaded_augmenter import NonDetMultiThreadedAugmenter
@@ -113,25 +113,25 @@ def get_insaneDA_augmentation(dataloader_train, dataloader_val, patch_size, para
 
     tr_transforms.append(RemoveLabelTransform(-1, 0))
 
-    if params.get("move_last_seg_chanel_to_data") is not None and params.get("move_last_seg_chanel_to_data"):
-        tr_transforms.append(MoveSegAsOneHotToData(1, params.get("all_segmentation_labels"), 'seg', 'data'))
-        if params.get("cascade_do_cascade_augmentations") and not None and params.get(
-                "cascade_do_cascade_augmentations"):
-            if params.get("cascade_random_binary_transform_p") > 0:
-                tr_transforms.append(ApplyRandomBinaryOperatorTransform(
-                    channel_idx=list(range(-len(params.get("all_segmentation_labels")), 0)),
-                    p_per_sample=params.get("cascade_random_binary_transform_p"),
-                    key="data",
-                    strel_size=params.get("cascade_random_binary_transform_size")))
-            if params.get("cascade_remove_conn_comp_p") > 0:
-                tr_transforms.append(
-                    RemoveRandomConnectedComponentFromOneHotEncodingTransform(
-                        channel_idx=list(range(-len(params.get("all_segmentation_labels")), 0)),
-                        key="data",
-                        p_per_sample=params.get("cascade_remove_conn_comp_p"),
-                        fill_with_other_class_p=params.get("cascade_remove_conn_comp_max_size_percent_threshold"),
-                        dont_do_if_covers_more_than_X_percent=params.get(
-                            "cascade_remove_conn_comp_fill_with_other_class_p")))
+    # if params.get("move_last_seg_chanel_to_data") is not None and params.get("move_last_seg_chanel_to_data"):
+    #     tr_transforms.append(MoveSegAsOneHotToData(1, params.get("all_segmentation_labels"), 'seg', 'data'))
+    #     if params.get("cascade_do_cascade_augmentations") and not None and params.get(
+    #             "cascade_do_cascade_augmentations"):
+    #         if params.get("cascade_random_binary_transform_p") > 0:
+    #             tr_transforms.append(ApplyRandomBinaryOperatorTransform(
+    #                 channel_idx=list(range(-len(params.get("all_segmentation_labels")), 0)),
+    #                 p_per_sample=params.get("cascade_random_binary_transform_p"),
+    #                 key="data",
+    #                 strel_size=params.get("cascade_random_binary_transform_size")))
+    #         if params.get("cascade_remove_conn_comp_p") > 0:
+    #             tr_transforms.append(
+    #                 RemoveRandomConnectedComponentFromOneHotEncodingTransform(
+    #                     channel_idx=list(range(-len(params.get("all_segmentation_labels")), 0)),
+    #                     key="data",
+    #                     p_per_sample=params.get("cascade_remove_conn_comp_p"),
+    #                     fill_with_other_class_p=params.get("cascade_remove_conn_comp_max_size_percent_threshold"),
+    #                     dont_do_if_covers_more_than_X_percent=params.get(
+    #                         "cascade_remove_conn_comp_fill_with_other_class_p")))
 
     tr_transforms.append(RenameTransform('seg', 'target', True))
 
