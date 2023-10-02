@@ -42,7 +42,9 @@ class ConvDropoutNormNonlin(nn.Module):
             norm_op_kwargs = {'eps': 1e-5, 'affine': True, 'momentum': 0.1}
         if conv_kwargs is None:
             conv_kwargs = {'kernel_size': 3, 'stride': 1, 'padding': 1, 'dilation': 1, 'bias': True}
-
+        ###############################################hardcode dpout rate for accumulation gradient
+        dropout_op_kwargs = {'p': 0.05, 'inplace': True}
+        ################################################
         self.nonlin_kwargs = nonlin_kwargs
         self.nonlin = nonlin
         self.dropout_op = dropout_op
